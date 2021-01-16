@@ -21,6 +21,9 @@ box_internet_ip = "192.168.1.1"
 passphrase = "INVITE91"
 ##############
 
+# Creation de bloc de configuration que l'ont concatene à la fin.
+
+# WIFI SSID
 cli_ssid = f"""config wireless-controller vap
 edit WIFI-INVITE
 set ssid "WIFI-INVITE-{site["name"]}"
@@ -36,6 +39,7 @@ set ip
 end
 """
 
+# DHCP Server
 cli_dhcp = f"""config system dhcp server
 edit 0
 set default-gateway 10.10.120.1
@@ -50,9 +54,8 @@ end
 end
 """
 
-config_file = open("fortigate.conf", "w")
-
-config_file.write(f"""config router static
+# Routes statiques
+cli_static_routes = f"""config router static
 edit 1
 set dst 0.0.0.0 0.0.0.0
 set gateway {box_internet_ip}
@@ -120,7 +123,10 @@ set device "internal"
 set comment "Site principale {main_site["name"]}"
 next
 end
-config firewall address
+"""
+
+# Objets addresse
+cli_firewall_address = f"""config firewall address
 edit "emul_3270"
 set subnet 10.112.200.171 255.255.255.255
 next
@@ -160,7 +166,10 @@ set member "emul_3270" "h_10.112.198.242" "h_10.54.112.123" "h_10.54.112.125" "h
 set color 15
 next
 end
-config firewall policy
+"""
+
+# Règles de firewall
+cli_policy = f"""config firewall policy
 edit 1
 set name "LAN vers WAN"
 set srcintf "internal"
@@ -273,7 +282,9 @@ set service "ALL"
 set nat enable
 next
 end
-config system dns
+"""
+# Config système : DNS, port 4430, timeout, etc...
+cli_system = f"""config system dns
 set primary {address_server_dc}
 set secondary 8.8.8.8
 set domain "{local_domain}"
@@ -282,6 +293,11 @@ set admin-sport 4430
 set admintimeout 10
 set hostname "{hostname}"
 set timezone 28
-""")
+"""
+# Ouverture/Création du fichier de config
+config_file = open("fortigate.conf", "w")
+
+# Concaténation des différents bloc
+config_file.write(cli_dhcp + cli_firewall_address + cli_policy + cli_ssid + cli_static_routes + cli_system)
 
 config_file.close()
