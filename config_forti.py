@@ -1,96 +1,123 @@
 # GUI avec TkInter ou Dear PyGUI
 
-#############
-# VAR
-
-routerVGF = "10.54.75.1" 
-boxInternet = "192.168.1.1"
-mainSite = { 
+###### VAR ######
+## INFO CLIENT
+main_site = { 
     "name": "Donjon",
     "network": "10.54.133.128",
     "mask": "255.255.255.128"
 }
-#brand = "Audi"
+address_server_dc = "10.54.133.133"
+## INFO SITE CLIENT
 site = {
     "name": "ABSOLUTE",
     "network": "10.54.70.0",
     "mask": "255.255.255.0"
 }
-#city = "Les ulis"
 hostname = "AU-ABSOLUTE"
-addressServerDC = "10.54.133.133"
-localDomain = "fr02410.vw-group.com"
+local_domain = "fr02410.vw-group.com"
+router_vgf = "10.54.75.1" 
+box_internet_ip = "192.168.1.1"
+passphrase = "INVITE91"
 ##############
 
+cli_ssid = f"""config wireless-controller vap
+edit WIFI-INVITE
+set ssid "WIFI-INVITE-{site["name"]}"
+set broadcast-ssid enable
+set security wpa2-personnal
+set passphrase "{passphrase}”
+set schedule PLAGE-{site["name"]}
+set vdom root
+end
+config system interface
+edit WIFI-INVITE
+set ip
+end
+"""
 
-configFile = open("fortigate.conf", "w")
+cli_dhcp = f"""config system dhcp server
+edit 0
+set default-gateway 10.10.120.1
+set dns-service default
+set interface WIFI-INVITE
+set netmask 255.255.255.0
+config ip-range
+edit 1
+set end-ip 10.10.120.9
+set start-ip 10.10.120.2
+end
+end
+"""
 
-configFile.write(f"""config router static
+config_file = open("fortigate.conf", "w")
+
+config_file.write(f"""config router static
 edit 1
 set dst 0.0.0.0 0.0.0.0
-set gateway {boxInternet}
+set gateway {box_internet_ip}
 set device "wan1"
 set comment "Internet"
 next
 edit 2
 set dst 10.6.0.0 255.255.0.0
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Plateforme Internet Datacenter SFR"
 next
 edit 3
 set dst 10.54.240.157 255.255.255.255
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "cpn.gvf"
 next
 edit 4
 set dst 10.54.94.0 255.255.255.128
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Liaison Roissy CE CAR*Base"
 next
 edit 5
 set dst 10.112.224.0 255.255.248.0
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Extranet GVF"
 next
 edit 6
 set dst 10.54.248.0 255.255.248.0
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "SD Creator"
 next
 edit 7
 set dst 10.60.0.0 255.255.0.0
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Support N2, Services EPO/WSUS VAS, Reverse Proxy 071219"
 next
 edit 8
 set dst 10.112.192.0 255.255.192.0
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Coeur de réseau partenaire (sur-réseau)"
 next
 edit 9
 set dst 10.54.240.128 255.255.255.192
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "(cpn.gvf ; SD Creator) Services DNS/DHCP/Infrastructures Partenaires"
 next
 edit 10
 set dst 10.54.170.0 255.255.255.192
-set gateway {routerVGF}
+set gateway {router_vgf}
 set device "internal"
 set comment "Services Infrastructures SFR"
 next
 edit 11
-set dst {mainSite["network"]} {mainSite["mask"]}
-set gateway {routerVGF}
+set dst {main_site["network"]} {main_site["mask"]}
+set gateway {router_vgf}
 set device "internal"
-set comment "Site principale {mainSite["name"]}"
+set comment "Site principale {main_site["name"]}"
 next
 end
 config firewall address
@@ -106,7 +133,7 @@ next
 edit "LAN-SITE-{site["name"]}"
 set subnet 10.54.92.192 255.255.255.192
 next
-edit "LAN-SITE-PRINCIPALE-{mainSite["name"]}"
+edit "LAN-SITE-PRINCIPALE-{main_site["name"]}"
 set subnet 10.54.167.192 255.255.255.192
 next
 edit "h_10.54.240.151 rpnbb"
@@ -129,7 +156,7 @@ next
 end
 config firewall addrgrp
 edit "RESSOURCES-SSL-VPN"
-set member "emul_3270" "h_10.112.198.242" "h_10.54.112.123" "h_10.54.112.125" "h_10.54.240.151 rpnbb" "LAN-{site["name"]}" "LAN-SITE-PRINCIPALE-{mainSite["name"]}" "LIAISON VERS CARBASE Roissy" "KASPERSKY CARBASE"
+set member "emul_3270" "h_10.112.198.242" "h_10.54.112.123" "h_10.54.112.125" "h_10.54.240.151 rpnbb" "LAN-{site["name"]}" "LAN-SITE-PRINCIPALE-{main_site["name"]}" "LIAISON VERS CARBASE Roissy" "KASPERSKY CARBASE"
 set color 15
 next
 end
@@ -247,9 +274,9 @@ set nat enable
 next
 end
 config system dns
-set primary {addressServerDC}
+set primary {address_server_dc}
 set secondary 8.8.8.8
-set domain "{localDomain}"
+set domain "{local_domain}"
 config system global
 set admin-sport 4430
 set admintimeout 10
@@ -257,4 +284,4 @@ set hostname "{hostname}"
 set timezone 28
 """)
 
-configFile.close()
+config_file.close()
