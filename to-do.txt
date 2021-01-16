@@ -1,0 +1,8 @@
+- input
+- WIFI : OK
+- Profile FortiAP
+- VPN
+- Plage horaire
+- Faire en sorte qu'on puisse selectionner ou pas des blocs.
+- groupes utilisateur
+- liaison à l'ad

@@ -18,26 +18,70 @@ hostname = "AU-ABSOLUTE"
 local_domain = "fr02410.vw-group.com"
 router_vgf = "10.54.75.1" 
 box_internet_ip = "192.168.1.1"
-passphrase = "INVITE91"
-##############
+passphrase_invite = "INVITE91"
+atelier_exist = True
+site_principale = False
 
-# Creation de bloc de configuration que l'ont concatene à la fin.
+## WIFI
+# Adresses réseaux des wifi, ajouter +10 sur le 3eme octet.
+wifi_network = {
+    "INVITE" : "172.16.190",
+    "AGENT" : "172.16.200",
+    "ATELIER" : "172.16.210",
+    "DIGITAL" : "172.16.220"
+}
 
-# WIFI SSID
-cli_ssid = f"""config wireless-controller vap
+##########################################################
+############## NE PAS EDITER EN DESSOUS ##################
+##########################################################
+
+# Creation de bloc de configuration que l'on concatene à la fin.
+
+## WIFI SSID
+
+# Définition de la liste des SSID à créer
+if atelier_exist == True:
+    ssid_list = ["AGENT" ,"DIGITAL", "ATELIER"]
+else:
+    ssid_list = ["AGENT" ,"DIGITAL"]
+
+cli_ssid = ""
+
+# Création du bloc de commandes
+for ssid in ssid_list:
+    cli_ssid += f"""config wireless-controller vap
+edit WIFI-{ssid}
+set ssid "WIFI-{ssid}-{site["name"]}"
+set broadcast-ssid enable
+set security wpa2-only-enterprise
+set auth usergroup
+set usergroup "GRP-WIFI-{ssid}-{site["name"]}"
+set schedule always
+set vdom root
+end
+config system interface
+edit WIFI-{ssid}
+set ip {wifi_network[ssid]} 255.255.255.0
+end"""
+
+# Ajout du bloc de commande pour WIFI INVITE
+cli_ssid += f"""config wireless-controller vap
 edit WIFI-INVITE
 set ssid "WIFI-INVITE-{site["name"]}"
 set broadcast-ssid enable
-set security wpa2-personnal
-set passphrase "{passphrase}”
+set security wpa2-only-personnal
+set passphrase {passphrase_invite}
 set schedule PLAGE-{site["name"]}
 set vdom root
 end
 config system interface
 edit WIFI-INVITE
-set ip
-end
-"""
+set ip {wifi_network["INVITE"]} 255.255.255.0
+end"""
+
+# Test bloc WIFI SSID
+# with open("fortigate.conf","w") as file:
+#     file.write(cli_ssid)
 
 # DHCP Server
 cli_dhcp = f"""config system dhcp server
