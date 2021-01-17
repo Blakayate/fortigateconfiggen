@@ -98,6 +98,24 @@ end
 end
 """
 
+# FortiAP profile
+cli_fortiap_profile = f"""
+edit "FAPU421E-default"
+config platform
+set type U421E
+end
+set handoff-sta-thresh 30
+config radio-1
+set band 802.11n
+set vap-all enable
+end
+config radio-2
+set band 802.11ac
+set vap-all enable
+end
+next
+"""
+
 # Routes statiques
 cli_static_routes = f"""config router static
 edit 1
