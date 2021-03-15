@@ -1,3 +1,3 @@
 # fortigateconfiggen
 
-Script pour générer des configuration Fortigate plus simplement.
+Programme pour générer des configuration Fortigate plus simplement.
