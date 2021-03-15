@@ -1,8 +1,9 @@
 - input
 - WIFI : OK
-- Profile FortiAP
+- DHCP Server pour les wifi
+- Profile FortiAP : OK
 - VPN
-- Plage horaire
+- Plage horaire : OK
 - Faire en sorte qu'on puisse selectionner ou pas des blocs.
-- groupes utilisateur
-- liaison à l'ad
+- groupes utilisateur : OK
+- liaison à l'ad: OK

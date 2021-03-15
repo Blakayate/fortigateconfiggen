@@ -15,10 +15,12 @@ site = {
     "mask": "255.255.255.0"
 }
 hostname = "AU-ABSOLUTE"
-local_domain = "fr02410.vw-group.com"
+local_domain = "fr02410"
+netbios = "FVW5487S1DS"
+ad_admin_pass = "xxxxx"
 router_vgf = "10.54.75.1" 
 box_internet_ip = "192.168.1.1"
-passphrase_invite = "INVITE91"
+passphrase_invite = "INVITE"
 atelier_exist = True
 site_principale = False
 
@@ -36,6 +38,48 @@ wifi_network = {
 ##########################################################
 
 # Creation de bloc de configuration que l'on concatene à la fin.
+
+# Liaison LDAP
+cli_ldap = f"""config user ldap
+edit "AD {main_site["name"]}"
+set server "10.20.30.40"
+set cnid "SAMAccountName"
+set dn "dc={local_domain},dc=vw-group,dc=com"
+set type regular
+set username "{netbios}\\admin"
+set password {ad_admin_pass}
+next
+end"""
+# Groupes utilisateurs
+
+cli_groups = f"""config user group
+edit "GRP-USER-VPN-{site["name"]}"
+set member "AD {main_site["name"]}"
+config match
+edit 1
+set server-name "AD {main_site["name"]}"
+set group-name "CN=AD-VPN-USERS,CN=Users,DC={local_domain},DC=vw-group,DC=com"
+next
+end
+next
+edit "GRP-AGENT-site"
+set member "AD {main_site["name"]}"
+config match
+edit 1
+set server-name "AD {main_site["name"]}"
+set group-name "CN=AD-VPN-USERS,CN=Users,DC={local_domain},DC=vw-group,DC=com"
+next
+next
+edit "GRP-DIGITAL-{site["name"]}"
+next
+end"""
+
+if atelier_exist == True:
+    cli_groups += f"""config user group
+edit "GRP-ATELIER-{site["name"]}"
+next
+end
+"""
 
 ## WIFI SSID
 
@@ -61,7 +105,7 @@ set vdom root
 end
 config system interface
 edit WIFI-{ssid}
-set ip {wifi_network[ssid]} 255.255.255.0
+set ip {wifi_network[ssid]}.1 255.255.255.0
 end"""
 
 # Ajout du bloc de commande pour WIFI INVITE
@@ -76,7 +120,7 @@ set vdom root
 end
 config system interface
 edit WIFI-INVITE
-set ip {wifi_network["INVITE"]} 255.255.255.0
+set ip {wifi_network["INVITE"]}.1 255.255.255.0
 end"""
 
 # Test bloc WIFI SSID
@@ -95,23 +139,39 @@ edit 1
 set end-ip 10.10.120.9
 set start-ip 10.10.120.2
 end
-end
 """
+
+# Plages horaires
+cli_schedule = f"""
+config firewall schedule recurring
+edit "PLAGE ACCES WIFI INVITE"
+set start 08:00
+set end 19:00
+set day monday tuesday wednesday thursday friday saturday
+next
+end"""
 
 # FortiAP profile
 cli_fortiap_profile = f"""
-edit "FAPU421E-default"
+edit "FAPU421EV"
 config platform
 set type U421E
 end
 set handoff-sta-thresh 30
+set ap-country FR
+set allowaccess https ssh snmp
 config radio-1
 set band 802.11n
+set frequency-handoff enable
+set ap-handoff enable
 set vap-all enable
+set channel "1" "6" "11"
 end
 config radio-2
 set band 802.11ac
-set vap-all enable
+set frequency-handoff enable
+set ap-handoff enable
+set channel "36" "40" "44" "48" "52" "56" "60" "64" "100" "104" "108" "112" "116" "120" "124" "128" "132" "136" "140"
 end
 next
 """
@@ -349,7 +409,7 @@ end
 cli_system = f"""config system dns
 set primary {address_server_dc}
 set secondary 8.8.8.8
-set domain "{local_domain}"
+set domain "{local_domain}.vw-group.com"
 config system global
 set admin-sport 4430
 set admintimeout 10
