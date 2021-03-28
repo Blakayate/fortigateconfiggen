@@ -1,5 +1,3 @@
-# GUI avec TkInter ou Dear PyGUI
-
 ###### VAR ######
 ## INFO CLIENT
 main_site = { 
