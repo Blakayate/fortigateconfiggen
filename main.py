@@ -1,34 +1,37 @@
+### IMPORT ###
+from interface import values
+
 ###### VAR ######
 ## INFO CLIENT
 main_site = { 
-    "name": "Donjon",
-    "network": "10.54.133.128",
-    "mask": "255.255.255.128"
+    "name": values[1],
+    "network": values[2],
+    "mask": values[3]
 }
-address_server_dc = "10.54.133.133"
+address_server_dc = values[4]
 ## INFO SITE CLIENT
 site = {
-    "name": "ABSOLUTE",
-    "network": "10.54.70.0",
-    "mask": "255.255.255.0"
+    "name": values[5],
+    "network": values[6],
+    "mask": values[7]
 }
-hostname = "AU-ABSOLUTE"
-local_domain = "fr02410"
-netbios = "FVW5487S1DS"
-ad_admin_pass = "xxxxx"
-router_vgf = "10.54.75.1" 
-box_internet_ip = "192.168.1.1"
-passphrase_invite = "INVITE"
-atelier_exist = True
-site_principale = False
+hostname = values[8]
+local_domain = values[9]
+netbios = values[10]
+ad_admin_pass = values[11]
+router_vgf = values[0]
+box_internet_ip = values[12]
+passphrase_invite = values[13]
+atelier_exist = values[14]
+site_principale = values[15]
 
 ## WIFI
 # Adresses réseaux des wifi, ajouter +10 sur le 3eme octet.
 wifi_network = {
-    "INVITE" : "172.16.190",
-    "AGENT" : "172.16.200",
-    "ATELIER" : "172.16.210",
-    "DIGITAL" : "172.16.220"
+    "INVITE" : values[16],
+    "AGENT" : values[17],
+    "ATELIER" : values[18],
+    "DIGITAL" : values[19]
 }
 
 ##########################################################
